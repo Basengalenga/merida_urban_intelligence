@@ -1,0 +1,7 @@
+pandas
+geopandas
+requests
+curl_cffi
+sqlalchemy
+psycopg2-binary
+geoalchemy2
