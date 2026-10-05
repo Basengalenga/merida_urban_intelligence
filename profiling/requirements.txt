@@ -1,0 +1,9 @@
+ydata-profiling
+setuptools<81  # ydata-profiling aún importa pkg_resources
+pandas
+geopandas
+requests
+curl_cffi
+openpyxl
+nbconvert
+ipykernel
