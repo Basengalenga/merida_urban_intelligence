@@ -56,7 +56,7 @@ def ejecutar_extraccion(funcion: str, dag_run=None, logical_date=None) -> None:
 
 @dag(
     dag_id="pipeline_yucatan_dw",
-    schedule=None,  # solo manual
+    schedule="@once",  # corre una sola vez al registrarse en una base de metadatos nueva
     start_date=pendulum.datetime(2026, 1, 1, tz="UTC"),
     catchup=False,
     tags=["yucatan_dw"],
