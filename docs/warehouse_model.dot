@@ -1,0 +1,127 @@
+// Dimensional model of the gold layer (yucatan_dw).
+// Render: dot -Tpng -Gdpi=150 docs/warehouse_model.dot -o docs/warehouse_model.png
+digraph warehouse_model {
+    graph [rankdir=LR, splines=spline, nodesep=0.5, ranksep=1.3, fontname="Helvetica", fontsize=20,
+           labelloc=t, label=<<b>yucatan_dw · gold layer · star schema</b><br/><font point-size="12">PK = primary key · FK = foreign key · geometries in EPSG:6372</font>>, pad=0.4];
+    node  [shape=plaintext, fontname="Helvetica", fontsize=11];
+    edge  [arrowhead=crow, arrowtail=tee, dir=both, color="#555555", penwidth=1.2];
+
+    // ---------------------------------------------------------------- dimensions
+    dim_municipio [label=<
+      <table border="0" cellborder="1" cellspacing="0" cellpadding="5" bgcolor="white">
+        <tr><td bgcolor="#2E6FAC" colspan="2"><font color="white"><b>dim_municipio</b></font></td></tr>
+        <tr><td bgcolor="#DCE8F5" colspan="2"><i>grain: one municipality (106)</i></td></tr>
+        <tr><td align="left"><b>cvegeo</b></td><td align="left" port="cvegeo">CHAR(5) PK</td></tr>
+        <tr><td align="left">nombre</td><td align="left">TEXT</td></tr>
+        <tr><td align="left">area_km2</td><td align="left">DOUBLE</td></tr>
+        <tr><td align="left">geom</td><td align="left">MultiPolygon, 6372</td></tr>
+      </table>>];
+
+    dim_tiempo [label=<
+      <table border="0" cellborder="1" cellspacing="0" cellpadding="5" bgcolor="white">
+        <tr><td bgcolor="#2E6FAC" colspan="2"><font color="white"><b>dim_tiempo</b></font></td></tr>
+        <tr><td bgcolor="#DCE8F5" colspan="2"><i>grain: year-month, 2020–2025 (72)</i></td></tr>
+        <tr><td align="left"><b>id_tiempo</b></td><td align="left" port="id_tiempo">INTEGER PK (YYYYMM)</td></tr>
+        <tr><td align="left">anio</td><td align="left">SMALLINT</td></tr>
+        <tr><td align="left">mes</td><td align="left">SMALLINT</td></tr>
+        <tr><td align="left">trimestre</td><td align="left">SMALLINT</td></tr>
+        <tr><td align="left">nombre_mes</td><td align="left">TEXT</td></tr>
+      </table>>];
+
+    dim_actividad [label=<
+      <table border="0" cellborder="1" cellspacing="0" cellpadding="5" bgcolor="white">
+        <tr><td bgcolor="#2E6FAC" colspan="2"><font color="white"><b>dim_actividad</b></font></td></tr>
+        <tr><td bgcolor="#DCE8F5" colspan="2"><i>grain: SCIAN class × SCIAN version</i></td></tr>
+        <tr><td align="left"><b>id_actividad</b></td><td align="left" port="id_actividad">SERIAL PK</td></tr>
+        <tr><td align="left">codigo_clase, desc_clase</td><td align="left">CHAR(6), TEXT</td></tr>
+        <tr><td align="left">version_scian</td><td align="left">TEXT</td></tr>
+        <tr><td align="left">codigo_rama, desc_rama</td><td align="left">CHAR(4), TEXT</td></tr>
+        <tr><td align="left">codigo_subsector, desc_subsector</td><td align="left">CHAR(3), TEXT</td></tr>
+        <tr><td align="left">codigo_sector, desc_sector</td><td align="left">VARCHAR(5), TEXT</td></tr>
+        <tr><td align="left">es_retail</td><td align="left">BOOLEAN</td></tr>
+        <tr><td align="left">es_servicio</td><td align="left">BOOLEAN</td></tr>
+      </table>>];
+
+    dim_delito [label=<
+      <table border="0" cellborder="1" cellspacing="0" cellpadding="5" bgcolor="white">
+        <tr><td bgcolor="#2E6FAC" colspan="2"><font color="white"><b>dim_delito</b></font></td></tr>
+        <tr><td bgcolor="#DCE8F5" colspan="2"><i>grain: legal good × type × subtype × modality</i></td></tr>
+        <tr><td align="left"><b>id_delito</b></td><td align="left" port="id_delito">SERIAL PK</td></tr>
+        <tr><td align="left">bien_juridico</td><td align="left">TEXT</td></tr>
+        <tr><td align="left">tipo_delito</td><td align="left">TEXT</td></tr>
+        <tr><td align="left">subtipo_delito</td><td align="left">TEXT</td></tr>
+        <tr><td align="left">modalidad</td><td align="left">TEXT</td></tr>
+      </table>>];
+
+    // ---------------------------------------------------------------- facts
+    fact_censo [label=<
+      <table border="0" cellborder="1" cellspacing="0" cellpadding="5" bgcolor="white">
+        <tr><td bgcolor="#C0504D" colspan="2"><font color="white"><b>fact_censo</b></font></td></tr>
+        <tr><td bgcolor="#F4DCDB" colspan="2"><i>grain: municipality (Census 2020)</i></td></tr>
+        <tr><td align="left" port="cvegeo"><b>cvegeo</b></td><td align="left">CHAR(5) PK, FK</td></tr>
+        <tr><td align="left">pobtot, p_12ymas</td><td align="left">INTEGER</td></tr>
+        <tr><td align="left">pea, pe_inac</td><td align="left">INTEGER</td></tr>
+        <tr><td align="left">pob0_14, pob15_64, pob65_mas</td><td align="left">INTEGER</td></tr>
+        <tr><td align="left">vivtot, tvivhab</td><td align="left">INTEGER</td></tr>
+        <tr><td align="left">fuente, version_fuente</td><td align="left">TEXT (lineage)</td></tr>
+        <tr><td align="left">fecha_carga</td><td align="left">TIMESTAMPTZ (lineage)</td></tr>
+        <tr><td align="left">run_id</td><td align="left">UUID (lineage)</td></tr>
+      </table>>];
+
+    fact_establecimiento [label=<
+      <table border="0" cellborder="1" cellspacing="0" cellpadding="5" bgcolor="white">
+        <tr><td bgcolor="#C0504D" colspan="2"><font color="white"><b>fact_establecimiento</b></font></td></tr>
+        <tr><td bgcolor="#F4DCDB" colspan="2"><i>grain: establishment × DENUE edition</i><br/><i>(periodic snapshot: do NOT sum across editions)</i></td></tr>
+        <tr><td align="left"><b>id_denue</b></td><td align="left">BIGINT PK</td></tr>
+        <tr><td align="left"><b>edicion</b></td><td align="left">CHAR(7) PK</td></tr>
+        <tr><td align="left" port="cvegeo">cvegeo</td><td align="left">CHAR(5) FK</td></tr>
+        <tr><td align="left" port="id_actividad">id_actividad</td><td align="left">INTEGER FK</td></tr>
+        <tr><td align="left" port="id_tiempo">id_tiempo</td><td align="left">INTEGER FK (edition month)</td></tr>
+        <tr><td align="left">per_ocu</td><td align="left">TEXT</td></tr>
+        <tr><td align="left">geom</td><td align="left">Point, 6372</td></tr>
+        <tr><td align="left">fuente, version_fuente</td><td align="left">TEXT (lineage)</td></tr>
+        <tr><td align="left">fecha_carga</td><td align="left">TIMESTAMPTZ (lineage)</td></tr>
+        <tr><td align="left">run_id</td><td align="left">UUID (lineage)</td></tr>
+      </table>>];
+
+    fact_incidencia [label=<
+      <table border="0" cellborder="1" cellspacing="0" cellpadding="5" bgcolor="white">
+        <tr><td bgcolor="#C0504D" colspan="2"><font color="white"><b>fact_incidencia</b></font></td></tr>
+        <tr><td bgcolor="#F4DCDB" colspan="2"><i>grain: municipality × month × crime</i></td></tr>
+        <tr><td align="left" port="cvegeo"><b>cvegeo</b></td><td align="left">CHAR(5) PK, FK</td></tr>
+        <tr><td align="left" port="id_tiempo"><b>id_tiempo</b></td><td align="left">INTEGER PK, FK</td></tr>
+        <tr><td align="left" port="id_delito"><b>id_delito</b></td><td align="left">INTEGER PK, FK</td></tr>
+        <tr><td align="left">incidentes</td><td align="left">INTEGER</td></tr>
+        <tr><td align="left">fuente, version_fuente</td><td align="left">TEXT (lineage)</td></tr>
+        <tr><td align="left">fecha_carga</td><td align="left">TIMESTAMPTZ (lineage)</td></tr>
+        <tr><td align="left">run_id</td><td align="left">UUID (lineage)</td></tr>
+      </table>>];
+
+    // ---------------------------------------------------------------- bridge
+    vecinos_municipio [label=<
+      <table border="0" cellborder="1" cellspacing="0" cellpadding="5" bgcolor="white">
+        <tr><td bgcolor="#7F7F7F" colspan="2"><font color="white"><b>vecinos_municipio</b></font></td></tr>
+        <tr><td bgcolor="#E6E6E6" colspan="2"><i>grain: pair of contiguous municipalities</i><br/><i>(Queen, both directions)</i></td></tr>
+        <tr><td align="left" port="cvegeo"><b>cvegeo</b></td><td align="left">CHAR(5) PK, FK</td></tr>
+        <tr><td align="left" port="cvegeo_vecino"><b>cvegeo_vecino</b></td><td align="left">CHAR(5) PK, FK</td></tr>
+      </table>>];
+
+    // ---------------------------------------------------------------- layout
+    // Dimensions on the left; facts and the neighbour bridge on the right.
+    { rank=same; dim_municipio; dim_tiempo; dim_actividad; dim_delito; }
+    { rank=same; vecinos_municipio; fact_censo; fact_establecimiento; fact_incidencia; }
+
+    // ---------------------------------------------------------------- relationships
+    // one (tee) on the dimension side ─< many (crow) on the fact side
+    dim_municipio:cvegeo:e       -> fact_censo:cvegeo:w             [arrowhead=tee];  // 1:1
+    dim_municipio:cvegeo:e       -> fact_establecimiento:cvegeo:w;
+    dim_municipio:cvegeo:e       -> fact_incidencia:cvegeo:w;
+    dim_tiempo:id_tiempo:e       -> fact_establecimiento:id_tiempo:w;
+    dim_tiempo:id_tiempo:e       -> fact_incidencia:id_tiempo:w;
+    dim_actividad:id_actividad:e -> fact_establecimiento:id_actividad:w;
+    dim_delito:id_delito:e       -> fact_incidencia:id_delito:w;
+
+    // bridge: each municipality appears N times as cvegeo and N times as cvegeo_vecino
+    dim_municipio:cvegeo:e -> vecinos_municipio:cvegeo:w        [style=dashed];
+    dim_municipio:cvegeo:e -> vecinos_municipio:cvegeo_vecino:w [style=dashed];
+}
