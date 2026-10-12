@@ -1,17 +1,19 @@
 # Versiones fijas (probadas con Python 3.12) para que el entorno y la imagen de Docker sean reproducibles.
 # ETL
-pandas==3.0.6
-geopandas==1.2.0
-requests==2.34.2
-curl_cffi==0.16.3
-sqlalchemy==2.1.1
-psycopg2-binary==2.9.13
+pandas==2.1.4
+geopandas==1.1.4
+requests==2.32.3
+curl_cffi==0.14.0
+sqlalchemy==1.4.54
+psycopg2-binary==2.9.10
 geoalchemy2==0.20.0
+openpyxl==3.1.5
 # Análisis espacial
-libpysal==4.15.0
-esda==2.10.0
+libpysal==4.14.1
+esda==2.7.0
 splot==1.1.7
-scipy==1.18.1
+matplotlib==3.11.2
+scipy==1.17.1
 # Dashboard
-streamlit==1.64.0
+streamlit==1.60.0
 folium==0.20.0

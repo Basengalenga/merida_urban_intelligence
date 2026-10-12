@@ -212,11 +212,10 @@ significancia al 0.05):
 - **LISA**: los mismos dos indicadores; cuadrantes HH, HL, LH y LL.
 - **Moran bivariado**: tasa delictiva vs densidad de negocios.
 
-Los resultados y su interpretación están en [`hallazgos.md`](hallazgos.md).
-
 ### Mapas y figuras
 
-`src/figuras.py` lee solo de gold y genera PNG en `outputs/` (93 archivos):
+`src/figuras.py` lee solo de gold y genera 93 PNG en `outputs/`. La carpeta no está en
+el repositorio: se crea al ejecutar el script.
 
 | Carpeta | Contenido |
 | --- | --- |
@@ -339,7 +338,7 @@ Requisitos: Docker con Docker Compose.
 
    `--user` hace que los PNG queden a nombre de tu usuario y no del usuario de Airflow. Cada
    ejecución sobrescribe los PNG. Si la imagen se construyó antes de agregar `matplotlib` a
-   `requirements.txt`, reconstruirla primero con `docker compose build airflow`.
+   `requirements.txt`, primero hay que reconstruirla con `docker compose build airflow`.
 
 El contenedor `airflow` monta `./dags`, `./src` y `./sql` en `/opt/airflow/` como solo
 lectura (`:ro`): Airflow solo necesita leerlos, y así no los modifica por accidente. Los
@@ -400,12 +399,10 @@ validaciones/silver.sql       # validaciones post-carga de silver
 validaciones/gold.sql         # cálculo de cada KPI desde hechos y dimensiones
 docs/warehouse_model.*        # diagrama dimensional (PNG, Graphviz y Mermaid)
 docs/data_dictionary_*.md     # diccionario de datos de bronze, silver y gold
-outputs/maps/                 # coropletas y mapas LISA por año
-outputs/figures/              # correlaciones, Moran, incidentes por tipo y series
+outputs/                      # generado por figuras.py (no versionado): maps/ y figures/
 api/                          # API FastAPI sobre gold
 dashboard/                    # dashboard Streamlit que consume la API
 airflow/Dockerfile            # imagen de Airflow con las dependencias de src/
 docker-compose.yml            # PostGIS, API, dashboard y Airflow
 requirements.txt              # dependencias de Python del pipeline
-hallazgos.md                  # resultados e interpretación del análisis
 ```
